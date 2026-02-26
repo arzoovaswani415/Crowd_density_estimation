@@ -29,13 +29,20 @@ class ShanghaiTechDataset(Dataset):
         img = Image.open(img_path).convert("RGB")
         img = np.array(img).astype(np.float32) / 255.0
 
-        # ---- Load density ----
+        # ---- Load density safely ----
         gt_name = img_name.replace(".jpg", ".h5")
         gt_path = os.path.join(self.gt_dir, gt_name)
 
-        with h5py.File(gt_path, "r") as f:
-            density = np.array(f["density"], dtype=np.float32)
+        # If GT file does not exist → skip
+        if not os.path.exists(gt_path):
+            return self.__getitem__((idx + 1) % len(self))
 
+        try:
+            with h5py.File(gt_path, "r") as f:
+                density = np.array(f["density"], dtype=np.float32)
+        except Exception:
+            # Skip corrupted file
+            return self.__getitem__((idx + 1) % len(self))
         # ---- Resize image ----
         if self.resize is not None:
           h, w = img.shape[:2]
