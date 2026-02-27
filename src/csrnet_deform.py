@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchvision import models
 from .deform_block import DeformBlock
 from .deform_attention import DeformableAttention
+
 
 
 class CSRNetDeform(nn.Module):
@@ -56,6 +58,6 @@ class CSRNetDeform(nn.Module):
         x = self.output_layer(x)
 
         # 🔥 VERY IMPORTANT — force positive density
-        x = torch.relu(x)
+        x = F.softplus(x)
 
         return x
