@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 from .deform_block import DeformBlock   # IMPORTANT: relative import
+from .deform_attention import DeformAttention
 
 
 class CSRNetDeform(nn.Module):
@@ -49,6 +50,29 @@ class CSRNetDeform(nn.Module):
             nn.Conv2d(128, 64, 3, padding=2, dilation=2),
             nn.ReLU(inplace=True),
         )
+        self.backend = nn.Sequential(
+
+    # 1️⃣ Deformable Conv
+    DeformBlock(512, 512),
+
+    # 2️⃣ 🔥 Deformable Attention (NEW)
+    DeformAttention(512),
+
+    nn.Conv2d(512, 512, 3, padding=2, dilation=2),
+    nn.ReLU(inplace=True),
+
+    nn.Conv2d(512, 512, 3, padding=2, dilation=2),
+    nn.ReLU(inplace=True),
+
+    nn.Conv2d(512, 256, 3, padding=2, dilation=2),
+    nn.ReLU(inplace=True),
+
+    nn.Conv2d(256, 128, 3, padding=2, dilation=2),
+    nn.ReLU(inplace=True),
+
+    nn.Conv2d(128, 64, 3, padding=2, dilation=2),
+    nn.ReLU(inplace=True),
+)
 
         # Output density map
         self.output_layer = nn.Conv2d(64, 1, kernel_size=1)
